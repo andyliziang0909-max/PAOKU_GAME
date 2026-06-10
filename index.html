@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Obby Game</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://esm.sh/three@0.176.0",
+          "three/addons/": "https://esm.sh/three@0.176.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="ui">
+      <div id="hud">
+        <span id="level-label">Level 1</span>
+        <span id="zone-label">Grasslands</span>
+        <span id="tip-label">Press W to move · Space to jump · Shift to Dash</span>
+        <div id="dash-indicator" title="Dash cooldown">
+          <span class="dash-label">DASH</span>
+          <div class="dash-bar-bg"><div id="dash-bar"></div></div>
+        </div>
+        <span id="checkpoint-label">Checkpoint 0 / 5</span>
+        <span id="timer-label">0:00.0</span>
+      </div>
+      <div id="streak-hud" class="hidden"></div>
+      <div id="hype-meter" class="hype-meter" aria-hidden="true">
+        <span class="hype-bar"></span><span class="hype-bar"></span><span class="hype-bar"></span>
+      </div>
+      <div id="bounce-hud" class="hidden">
+        <div class="bounce-hud-title">🏀 BOUNCE ROUND</div>
+        <div id="bounce-mods" class="bounce-mods"></div>
+        <div class="bounce-hud-row"><span>Score</span><strong id="bounce-score">0</strong></div>
+        <div class="bounce-hud-row"><span>Goal</span><strong id="bounce-goal">15</strong></div>
+        <div class="bounce-hud-row"><span>Time</span><strong id="bounce-timer">1:00</strong></div>
+        <div class="bounce-hud-row ppm"><span>Pts / min</span><strong id="bounce-ppm">0</strong></div>
+      </div>
+      <div id="crosshair" class="hidden" aria-hidden="true"><span class="crosshair-dot"></span></div>
+      <div id="shoot-prompt" class="hidden">🏀 Press E to Shoot!</div>
+      <div id="score-flash" class="hidden">SCORE! 🏀</div>
+      <div id="overlay">
+        <div class="start-page">
+          <header class="start-header">
+            <h1>Obby Game</h1>
+            <p class="start-tagline">Beat all 8 levels — pick your runner and jump in!</p>
+            <p id="player-title" class="player-title">Title: Rookie</p>
+            <p id="daily-challenge" class="daily-challenge"></p>
+          </header>
+
+          <section class="character-section">
+            <h2>Choose Your Character</h2>
+            <div class="character-layout">
+              <div id="character-preview-wrap">
+                <canvas id="character-preview-canvas" width="200" height="240"></canvas>
+                <p id="preview-hint">Face view · spins slowly</p>
+              </div>
+              <div id="character-grid"></div>
+            </div>
+            <p id="selected-character-label">
+              Selected: <strong id="selected-character-name">—</strong>
+            </p>
+            <p id="character-bonus" class="character-bonus">Perk: —</p>
+          </section>
+
+          <section class="ball-section">
+            <h2>Ball Skin</h2>
+            <div id="ball-picker" class="ball-picker"></div>
+          </section>
+
+          <section class="test-mode-section" id="test-mode-section">
+            <label class="test-mode-toggle">
+              <input type="checkbox" id="test-mode-checkbox" />
+              <span>Testing mode — jump to any level</span>
+            </label>
+            <div id="test-level-picker" class="test-level-picker hidden">
+              <p class="test-mode-hint">Pick a level to play-test (checkpoints reset)</p>
+              <div id="test-level-buttons" class="test-level-buttons"></div>
+            </div>
+          </section>
+
+          <section class="controls-section">
+            <ul class="controls-list">
+              <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — Move</li>
+              <li><kbd>Space</kbd> ×2 — Jump & double jump</li>
+              <li><kbd>Shift</kbd> — Dash</li>
+              <li><kbd>E</kbd> — Shoot basketball (Levels 5–8)</li>
+              <li>Mouse — Look around</li>
+            </ul>
+            <button id="start-btn" disabled>Start Game</button>
+          </section>
+        </div>
+      </div>
+      <div id="win-screen" class="hidden">
+        <div class="panel win">
+          <h1 id="win-title">You Win!</h1>
+          <p id="win-message"></p>
+          <p id="win-time">Time: 0:00.0</p>
+          <p id="win-medals" class="win-medals hidden"></p>
+          <div class="win-buttons">
+            <button id="continue-btn" class="hidden">Level 2 — Dream Sky</button>
+            <button id="retry-btn">Play Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <canvas id="game"></canvas>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
