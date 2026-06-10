@@ -172,6 +172,7 @@ const input = {
 };
 
 let pointerLocked = false;
+let aimAdjustActive = false;
 let running = false;
 let won = false;
 let elapsed = 0;
@@ -190,23 +191,33 @@ function formatCountdown(seconds) {
   return `${mins}:${String(secs).padStart(2, "0")}`;
 }
 
-/** Direction the player should SHOOT in — forward (yaw) + upward arc */
+/** Shoot direction from camera yaw/pitch — horizontal aim follows where you look */
 function getPlayerShootDirection() {
-  const yaw = player.yaw;
   const highArc = Boolean(level?.highArcShots);
-  let pitchBase = highArc ? 0.58 : 0.42;
-  let pitchMin = highArc ? 0.32 : 0.18;
-  if (player.characterBonus?.arcBonus) {
-    pitchBase += 0.1;
-    pitchMin += 0.06;
-  }
-  const pitchAim = Math.max(-player.pitch * 0.4 + pitchBase, pitchMin);
-  cameraAimDir.set(
-    -Math.sin(yaw) * Math.cos(pitchAim),
-     Math.sin(pitchAim),
-    -Math.cos(yaw) * Math.cos(pitchAim)
+  let arcBias = highArc ? 0.28 : 0.2;
+  if (player.characterBonus?.arcBonus) arcBias += 0.06;
+
+  const pitchAim = THREE.MathUtils.clamp(
+    -player.pitch + arcBias,
+    highArc ? 0.06 : 0.04,
+    highArc ? 0.78 : 0.65
   );
-  return cameraAimDir;
+
+  cameraAimDir.set(
+    -Math.sin(player.yaw) * Math.cos(pitchAim),
+    Math.sin(pitchAim),
+    -Math.cos(player.yaw) * Math.cos(pitchAim)
+  );
+  return cameraAimDir.normalize();
+}
+
+/** A/D turns aim left/right while holding the ball (WASD alone only moves the body) */
+function updateAimControls(dt) {
+  if (!aimAdjustActive) return;
+  const turn = 3.2 * dt;
+  if (input.left) player.yaw += turn;
+  if (input.right) player.yaw -= turn;
+  player.facingYaw = player.yaw;
 }
 
 function showScoreFlash(text, quick = false) {
@@ -733,8 +744,10 @@ document.addEventListener("pointerlockchange", () => {
 
 document.addEventListener("mousemove", (e) => {
   if (!pointerLocked || !running) return;
-  player.yaw -= e.movementX * 0.0025;
-  player.pitch = THREE.MathUtils.clamp(player.pitch - e.movementY * 0.0025, -1.1, 0.4);
+  const sens = aimAdjustActive ? 0.0042 : 0.0025;
+  player.yaw -= e.movementX * sens;
+  player.pitch = THREE.MathUtils.clamp(player.pitch - e.movementY * sens, -1.1, 0.4);
+  if (aimAdjustActive) player.facingYaw = player.yaw;
 });
 
 startBtn.addEventListener("click", () => {
@@ -796,6 +809,10 @@ function animate() {
   if (running && !won) {
     updateCamera();
 
+    aimAdjustActive = Boolean(
+      isBonusAimMode() && level?.canHoldBall?.(player.mesh.position)
+    );
+    updateAimControls(dt);
     const holdingBall = updateShootingAim();
 
     if (input.actionPressed && level.fireShot && level.canHoldBall?.(player.mesh.position)) {
@@ -857,7 +874,7 @@ function animate() {
       crosshair.classList.toggle("hidden", !showCrosshair);
 
       if (holdingBall) {
-        shootPrompt.textContent = "🏀 虚线=轨迹 · E 投篮";
+        shootPrompt.textContent = "🏀 鼠标/A/D 瞄准 · E 投篮";
         shootPrompt.classList.remove("hidden");
       } else if ((currentLevelNum === 7 || currentLevelNum === 8) && !bonusActive) {
         shootPrompt.textContent = "🏀 站上球场开始回合";
